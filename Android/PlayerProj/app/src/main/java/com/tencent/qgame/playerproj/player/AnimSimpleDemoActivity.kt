@@ -78,6 +78,8 @@ class AnimSimpleDemoActivity : Activity(), IAnimListener {
         animView.setScaleType(ScaleType.FIT_CENTER)
         // 注册动画监听
         animView.setAnimListener(this)
+        animView.setLoopPlayParams(70,75,3)
+        animView.setStartAndEndFrame(0,3)
         /**
          * 开始播放主流程
          * ps: 主要流程都是对AnimView的操作，其它比如队列，或改变窗口大小等操作都不是必须的

@@ -63,4 +63,18 @@ interface IAnimView {
     fun isRunning(): Boolean
 
     fun getRealSize(): Pair<Int, Int>
+
+    /**
+     * loopStartFrame > endFrame
+     */
+    fun setLoopPlayParams(
+        loopStartFrame: Int,
+        loopEndFrame: Int,
+        loopCount: Int
+        )
+
+    fun setStartAndEndFrame(
+        startFrame: Int,
+        endFrame: Int
+    )
 }

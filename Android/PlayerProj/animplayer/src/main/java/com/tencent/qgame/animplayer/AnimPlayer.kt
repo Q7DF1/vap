@@ -54,6 +54,12 @@ class AnimPlayer(val animView: IAnimView) {
     var startRunnable: Runnable? = null
     var isStartRunning = false // 启动时运行状态
     var isMute = false // 是否静音
+    //custom
+    var loopStartFrame = -1
+    var loopEndFrame = -1
+    var loopCount = -1
+    var startFrame = -1
+    var endFrame = -1
 
     val configManager = AnimConfigManager(this)
     val pluginManager = AnimPluginManager(this)

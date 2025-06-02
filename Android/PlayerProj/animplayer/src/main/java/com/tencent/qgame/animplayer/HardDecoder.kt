@@ -191,6 +191,8 @@ class HardDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
         var inputDone = false
         var frameIndex = 0
         var isLoop = false
+        var loopPlayedCount = 0
+        var inLoopPhase = false
 
         val decoderInputBuffers = decoder.inputBuffers
 
@@ -271,6 +273,23 @@ class HardDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
                         }
                         player.pluginManager.onDecoding(frameIndex)
                         onVideoRender(frameIndex, player.configManager.config)
+
+                        // part of loop
+                        //0 - 49
+                        if (frameIndex == player.endFrame || frameIndex == player.loopEndFrame) {
+                            inLoopPhase = loopPlayedCount < player.loopCount
+                        }
+
+                        if (inLoopPhase &&
+                            (frameIndex == player.endFrame || frameIndex == player.loopEndFrame)) {
+                            //循环
+                            loopPlayedCount++
+                            extractor.seekTo(frameToUs(player.loopStartFrame), MediaExtractor.SEEK_TO_CLOSEST_SYNC)
+                            decoder.flush()
+                            speedControlUtil.reset()
+                            inputDone = false
+                            frameIndex = player.loopStartFrame
+                        }
 
                         frameIndex++
                         ALog.d(TAG, "decode frameIndex=$frameIndex")
@@ -394,4 +413,6 @@ class HardDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
             destroyThread()
         }
     }
+     fun frameToUs(frame: Int): Long = (frame * 1_000_000L) / 25
+
 }

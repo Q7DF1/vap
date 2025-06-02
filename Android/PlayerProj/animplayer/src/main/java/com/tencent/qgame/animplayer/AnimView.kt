@@ -297,6 +297,21 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
         return scaleTypeUtil.getRealSize()
     }
 
+    override fun setLoopPlayParams(
+        loopStartFrame: Int,
+        loopEndFrame: Int,
+        loopCount: Int
+    ) {
+        player.loopStartFrame = loopStartFrame
+        player.loopEndFrame = loopEndFrame
+        player.loopCount = loopCount
+    }
+
+    override fun setStartAndEndFrame(startFrame: Int, endFrame: Int) {
+        player.startFrame = startFrame
+        player.endFrame = endFrame
+    }
+
     private fun hide() {
         lastFile?.close()
         ui {
