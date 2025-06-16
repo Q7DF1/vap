@@ -71,4 +71,7 @@ interface IAnimListener {
      * @param errorMsg 错误消息
      */
     fun onFailed(errorType: Int, errorMsg: String?)
+
+    fun onFrameSwitch() {
+    }
 }

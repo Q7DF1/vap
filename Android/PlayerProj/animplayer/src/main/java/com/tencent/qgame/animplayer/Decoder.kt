@@ -166,6 +166,7 @@ abstract class Decoder(val player: AnimPlayer) : IAnimListener {
         ALog.e(TAG, "onFailed errorType=$errorType, errorMsg=$errorMsg")
         player.animListener?.onFailed(errorType, errorMsg)
     }
+
 }
 
 data class HandlerHolder(var thread: HandlerThread?, var handler: Handler?)

@@ -26,6 +26,7 @@ enum class ScaleType {
     FIT_XY, // 完整填充整个布局 default
     FIT_CENTER, // 按视频比例在布局中间完整显示
     CENTER_CROP, // 按视频比例完整填充布局（多余部分不显示）
+    FIT_CENTER_PERCENT
 }
 
 interface IScaleType {
@@ -165,16 +166,73 @@ class ScaleTypeCenterCrop : IScaleType {
     }
 }
 
+class ScaleTypeFitCenterPercent(private val percent: Float = 1.0f) : IScaleType {
+
+    private var realWidth = 0
+    private var realHeight = 0
+
+    override fun getLayoutParam(
+        layoutWidth: Int,
+        layoutHeight: Int,
+        videoWidth: Int,
+        videoHeight: Int,
+        layoutParams: FrameLayout.LayoutParams
+    ): FrameLayout.LayoutParams {
+        val (w, h) = getFitCenterSize(layoutWidth, layoutHeight, videoWidth, videoHeight)
+        if (w <= 0 && h <= 0) return layoutParams
+        realWidth = w
+        realHeight = h
+        layoutParams.width = w
+        layoutParams.height = h
+        layoutParams.gravity = Gravity.CENTER
+        return layoutParams
+    }
+
+    override fun getRealSize(): Pair<Int, Int> {
+        return Pair(realWidth, realHeight)
+    }
+
+    private fun getFitCenterSize(
+        layoutWidth: Int,
+        layoutHeight: Int,
+        videoWidth: Int,
+        videoHeight: Int
+    ): Pair<Int, Int> {
+        val layoutRatio = layoutWidth.toFloat() / layoutHeight
+        val videoRatio = videoWidth.toFloat() / videoHeight
+
+        val rawWidth: Int
+        val rawHeight: Int
+        if (layoutRatio > videoRatio) {
+            rawHeight = layoutHeight
+            rawWidth = (videoRatio * rawHeight).toInt()
+        } else {
+            rawWidth = layoutWidth
+            rawHeight = (rawWidth / videoRatio).toInt()
+        }
+
+        val scaledWidth = (rawWidth * percent).toInt()
+        val scaledHeight = (rawHeight * percent).toInt()
+        return Pair(scaledWidth, scaledHeight)
+    }
+}
+
+
+
 
 class ScaleTypeUtil {
 
     companion object {
         private const val TAG = "${Constant.TAG}.ScaleTypeUtil"
+        var percent: Float = 1.0f
+            set(value) {field = value}
+            get() = field
     }
 
     private val scaleTypeFitXY by lazy { ScaleTypeFitXY() }
     private val scaleTypeFitCenter by lazy { ScaleTypeFitCenter() }
     private val scaleTypeCenterCrop by lazy { ScaleTypeCenterCrop() }
+    private val scaleTypeFitCenterPercent by lazy { ScaleTypeFitCenterPercent(percent = percent) }
     private var layoutWidth = 0
     private var layoutHeight = 0
     private var videoWidth = 0
@@ -237,6 +295,7 @@ class ScaleTypeUtil {
                 ScaleType.FIT_XY -> scaleTypeFitXY
                 ScaleType.FIT_CENTER -> scaleTypeFitCenter
                 ScaleType.CENTER_CROP -> scaleTypeCenterCrop
+                ScaleType.FIT_CENTER_PERCENT -> scaleTypeFitCenterPercent
             }
         }
     }

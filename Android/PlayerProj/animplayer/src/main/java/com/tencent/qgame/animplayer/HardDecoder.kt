@@ -21,6 +21,7 @@ import android.media.MediaCodecInfo
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.os.Build
+import android.util.Log
 import android.view.Surface
 import com.tencent.qgame.animplayer.file.IFileContainer
 import com.tencent.qgame.animplayer.util.ALog
@@ -192,7 +193,9 @@ class HardDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
         var frameIndex = 0
         var isLoop = false
         var loopPlayedCount = 0
+        var loopPlayedCountSwitch = 0
         var inLoopPhase = false
+        var inLoopPhaseSwitch = false
 
         val decoderInputBuffers = decoder.inputBuffers
 
@@ -256,7 +259,7 @@ class HardDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
                             player.playLoop = playLoop // 消耗loop次数 自动恢复后能有正确的loop次数
                             outputDone = playLoop <= 0
                         }
-                        val doRender = !outputDone
+                        val doRender = !outputDone && frameIndex >= player.startFrame
                         if (doRender) {
                             speedControlUtil.preRender(bufferInfo.presentationTimeUs)
                         }
@@ -276,11 +279,30 @@ class HardDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
 
                         // part of loop
                         //0 - 49
-                        if (frameIndex == player.endFrame || frameIndex == player.loopEndFrame) {
+                        if (player.isSwitched) {
+                            inLoopPhaseSwitch = loopPlayedCountSwitch < player.loopCount
+                        }else if (frameIndex == player.endFrame || frameIndex == player.loopEndFrame) {
                             inLoopPhase = loopPlayedCount < player.loopCount
                         }
+                        if (!inLoopPhaseSwitch) {
+                            player.isSwitched = false
+                        }
 
-                        if (inLoopPhase &&
+
+                        if (inLoopPhaseSwitch && (loopPlayedCountSwitch == 0||frameIndex == player.switchEndFrame)) {
+                            loopPlayedCountSwitch++
+                            extractor.seekTo(frameToUs(player.switchStartFrame), MediaExtractor.SEEK_TO_CLOSEST_SYNC)
+                            decoder.flush()
+                            speedControlUtil.reset()
+                            inputDone = false
+                            frameIndex = player.switchStartFrame
+
+                            if (loopPlayedCountSwitch == 1 && player.isSwitched) {
+                                Log.i(TAG, "startDecode: onFrameSwitch")
+                                onFrameSwitch()
+                            }
+
+                        }else if (inLoopPhase &&
                             (frameIndex == player.endFrame || frameIndex == player.loopEndFrame)) {
                             //循环
                             loopPlayedCount++
@@ -289,10 +311,22 @@ class HardDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
                             speedControlUtil.reset()
                             inputDone = false
                             frameIndex = player.loopStartFrame
+
+                        }
+                        if (loopPlayedCount == player.loopCount && frameIndex == player.loopEndFrame
+                            || (loopPlayedCountSwitch == player.loopCount && frameIndex == player.switchEndFrame)) {
+                            outputDone = true
+                            inputDone = true
                         }
 
                         frameIndex++
-                        ALog.d(TAG, "decode frameIndex=$frameIndex")
+
+                        if (!player.isSwitched && player.switchStartFrame > player.endFrame) {
+                            player.requestSwitch()
+                        }
+
+                        Log.i(TAG, "startDecode:lishien++ ${player.switchStartFrame} $frameIndex $loopPlayedCountSwitch $inLoopPhaseSwitch")
+                        ALog.d(TAG, "decode frameIndex=$frameIndex ${player.switchStartFrame} ")
                         if (loop > 0) {
                             ALog.d(TAG, "Reached EOD, looping")
                             player.pluginManager.onLoopStart()
@@ -414,5 +448,9 @@ class HardDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
         }
     }
      fun frameToUs(frame: Int): Long = (frame * 1_000_000L) / 25
+
+    override fun onFrameSwitch() {
+        player.animListener?.onFrameSwitch()
+    }
 
 }

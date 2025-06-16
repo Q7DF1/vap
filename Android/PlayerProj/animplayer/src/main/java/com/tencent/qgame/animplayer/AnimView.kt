@@ -87,6 +87,10 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
                 animListener?.onFailed(errorType, errorMsg)
             }
 
+            override fun onFrameSwitch() {
+                animListener?.onFrameSwitch()
+            }
+
         }
     }
 
@@ -240,6 +244,10 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
         scaleTypeUtil.scaleTypeImpl = scaleType
     }
 
+    override fun setScalePercent(percent: Float) {
+        ScaleTypeUtil.percent = percent
+    }
+
     /**
      * @param isMute true 静音
      */
@@ -287,6 +295,7 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
 
     override fun stopPlay() {
         player.stopPlay()
+        player.isSwitched = false
     }
 
     override fun isRunning(): Boolean {
@@ -310,6 +319,11 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
     override fun setStartAndEndFrame(startFrame: Int, endFrame: Int) {
         player.startFrame = startFrame
         player.endFrame = endFrame
+    }
+
+    override fun requestLoopSwitch(switchStartFrame: Int, switchEndFrame: Int) {
+        player.switchEndFrame = switchEndFrame
+        player.switchStartFrame = switchStartFrame
     }
 
     private fun hide() {

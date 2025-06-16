@@ -51,7 +51,7 @@ class AnimSimpleDemoActivity : Activity(), IAnimListener {
     data class VideoInfo(val fileName: String,val md5:String)
 
     // ps：每次修改mp4文件，但文件名不变，记得先卸载app，因为assets同名文件不会进行替换
-    private val videoInfo = VideoInfo("demo.mp4", "3132824326bb07a1143739863e1e5762")
+    private val videoInfo = VideoInfo("video.mp4", "885b0d354566c4b78095f42c13cf7523")
 
     // 动画View
     private lateinit var animView: AnimView
@@ -75,11 +75,12 @@ class AnimSimpleDemoActivity : Activity(), IAnimListener {
         // 获取动画view
         animView = playerView
         // 居中（根据父布局按比例居中并全部显示，默认fitXY）
-        animView.setScaleType(ScaleType.FIT_CENTER)
+        animView.setScaleType(ScaleType.FIT_CENTER_PERCENT)
+        animView.setScalePercent(0.6f)
         // 注册动画监听
         animView.setAnimListener(this)
-        animView.setLoopPlayParams(70,75,3)
-        animView.setStartAndEndFrame(0,3)
+        animView.setLoopPlayParams(50,99,5)
+        animView.setStartAndEndFrame(0,49)
         /**
          * 开始播放主流程
          * ps: 主要流程都是对AnimView的操作，其它比如队列，或改变窗口大小等操作都不是必须的
@@ -150,6 +151,9 @@ class AnimSimpleDemoActivity : Activity(), IAnimListener {
         Log.i(TAG, "onFailed errorType=$errorType errorMsg=$errorMsg")
     }
 
+    override fun onFrameSwitch() {
+        Log.i(TAG, "onFrameSwitch: lishien++")
+    }
 
 
     override fun onPause() {
@@ -194,6 +198,9 @@ class AnimSimpleDemoActivity : Activity(), IAnimListener {
          */
         btnStop.setOnClickListener {
             animView.stopPlay()
+        }
+        btnSwitch.setOnClickListener {
+            animView.requestLoopSwitch(150,199)
         }
     }
 

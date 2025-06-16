@@ -25,6 +25,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version") {
         exclude module: 'annotations'
     }
+    testImplementation 'junit:junit:4.13.2'
 }
 
 // jcenter 上传(这个要在底部)

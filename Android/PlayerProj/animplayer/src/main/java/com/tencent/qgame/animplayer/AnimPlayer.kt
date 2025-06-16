@@ -55,11 +55,27 @@ class AnimPlayer(val animView: IAnimView) {
     var isStartRunning = false // 启动时运行状态
     var isMute = false // 是否静音
     //custom
+    @Volatile
     var loopStartFrame = -1
+    @Volatile
     var loopEndFrame = -1
+    @Volatile
     var loopCount = -1
-    var startFrame = -1
-    var endFrame = -1
+    @Volatile
+    var startFrame = 0
+    @Volatile
+    var endFrame = 0
+    @Volatile
+    var switchStartFrame = -1
+    @Volatile
+    var switchEndFrame = -1
+    @Volatile
+    var isSwitched = false
+    @Volatile
+    var loopEnable = false
+        get() {
+            return loopStartFrame > startFrame && loopEndFrame > endFrame
+        }
 
     val configManager = AnimConfigManager(this)
     val pluginManager = AnimPluginManager(this)
@@ -159,5 +175,14 @@ class AnimPlayer(val animView: IAnimView) {
         configManager.config?.maskConfig?.maskPositionPair = maskConfig?.maskPositionPair
         configManager.config?.maskConfig?.maskTexPair = maskConfig?.maskTexPair
     }
+
+    fun requestSwitch() {
+        if (switchStartFrame > loopStartFrame && switchEndFrame > loopEndFrame) {
+            isSwitched = true
+            loopEnable = false
+        }
+
+    }
+    fun hasSwitched() = switchStartFrame > 0
 
 }

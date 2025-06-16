@@ -49,6 +49,7 @@ interface IAnimView {
     fun setScaleType(type: ScaleType)
 
     fun setScaleType(scaleType: IScaleType)
+    fun setScalePercent(percent: Float)
 
     fun setMute(isMute: Boolean)
 
@@ -76,5 +77,10 @@ interface IAnimView {
     fun setStartAndEndFrame(
         startFrame: Int,
         endFrame: Int
+    )
+
+    fun requestLoopSwitch(
+        switchStartFrame: Int,
+        switchEndFrame: Int
     )
 }
